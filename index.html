@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadet Uniform Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="loginScreen" class="screen active">
+        <div class="auth-card">
+          <div class="auth-header">
+            <div class="crest">⚓</div>
+            <div>
+              <p class="eyebrow">Australian Navy Cadets</p>
+              <h1>Uniform Tracker</h1>
+            </div>
+          </div>
+
+          <form id="loginForm">
+            <label>
+              Username
+              <input id="username" name="username" type="text" placeholder="headlogistics" required />
+            </label>
+            <label>
+              Password
+              <input id="password" name="password" type="password" placeholder="••••••••" required />
+            </label>
+            <button type="submit" class="primary-btn">Log in</button>
+          </form>
+
+          <div class="demo-box">
+            <h3>Demo accounts</h3>
+            <ul>
+              <li><strong>Head of Logistics</strong> — username: <code>headlogistics</code> | password: <code>password123</code></li>
+              <li><strong>Officer</strong> — username: <code>officer</code> | password: <code>password123</code></li>
+              <li><strong>Cadet</strong> — username: <code>cadet</code> | password: <code>password123</code></li>
+            </ul>
+          </div>
+          <p id="loginError" class="error hidden" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div id="dashboardScreen" class="screen hidden">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Cadet kit management</p>
+            <h2 id="welcomeLabel">Dashboard</h2>
+          </div>
+          <div class="topbar-actions">
+            <button id="refreshBtn" class="secondary-btn" type="button">Refresh</button>
+            <button id="logoutBtn" class="ghost-btn" type="button">Log out</button>
+          </div>
+        </header>
+
+        <main class="dashboard">
+          <section class="stats" id="statsArea"></section>
+
+          <section id="headPanel" class="panel hidden">
+            <div class="panel-header">
+              <h3>Head of Logistics</h3>
+            </div>
+            <div class="panel-grid two-col">
+              <div class="card">
+                <h4>Add or update stock item</h4>
+                <form id="stockForm" class="stacked-form">
+                  <label>
+                    Item code
+                    <input name="itemCode" type="text" required />
+                  </label>
+                  <label>
+                    Size
+                    <input name="size" type="text" required />
+                  </label>
+                  <label>
+                    Description
+                    <input name="description" type="text" required />
+                  </label>
+                  <label>
+                    Category
+                    <input name="category" type="text" placeholder="Uniform" />
+                  </label>
+                  <label>
+                    Reorder level
+                    <input name="reorderLevel" type="number" min="0" value="0" />
+                  </label>
+                  <button type="submit" class="primary-btn">Save stock item</button>
+                </form>
+              </div>
+
+              <div class="card">
+                <h4>Record movement</h4>
+                <form id="movementForm" class="stacked-form">
+                  <label>
+                    Item code
+                    <input name="itemCode" type="text" required />
+                  </label>
+                  <label>
+                    Size
+                    <input name="size" type="text" required />
+                  </label>
+                  <label>
+                    Movement type
+                    <select name="movement">
+                      <option value="received">Received</option>
+                      <option value="issued">Issued</option>
+                      <option value="returned">Returned to stock</option>
+                      <option value="discarded">Returned — discarded</option>
+                      <option value="adjustment">Stocktake adjustment</option>
+                    </select>
+                  </label>
+                  <label>
+                    Quantity
+                    <input name="quantity" type="number" min="1" value="1" required />
+                  </label>
+                  <button type="submit" class="primary-btn">Apply movement</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <section id="officerPanel" class="panel hidden">
+            <div class="panel-header">
+              <h3>Officer functions</h3>
+            </div>
+            <div class="panel-grid two-col">
+              <div class="card">
+                <h4>Issue kit to cadet</h4>
+                <form id="issueForm" class="stacked-form">
+                  <label>
+                    Cadet name
+                    <input name="cadetName" type="text" required placeholder="Cadet Smith" />
+                  </label>
+                  <label>
+                    Item code
+                    <input name="itemCode" type="text" required />
+                  </label>
+                  <label>
+                    Size
+                    <input name="size" type="text" required />
+                  </label>
+                  <label>
+                    Quantity
+                    <input name="quantity" type="number" min="1" value="1" required />
+                  </label>
+                  <button type="submit" class="primary-btn">Issue to cadet</button>
+                </form>
+              </div>
+              <div class="card">
+                <h4>Receive returned kit</h4>
+                <form id="returnForm" class="stacked-form">
+                  <label>
+                    Cadet name
+                    <input name="cadetName" type="text" required placeholder="Cadet Smith" />
+                  </label>
+                  <label>
+                    Item code
+                    <input name="itemCode" type="text" required />
+                  </label>
+                  <label>
+                    Size
+                    <input name="size" type="text" required />
+                  </label>
+                  <label>
+                    Quantity
+                    <input name="quantity" type="number" min="1" value="1" required />
+                  </label>
+                  <button type="submit" class="primary-btn">Return to stock</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <section id="inventoryPanel" class="panel">
+            <div class="panel-header inventory-header">
+              <h3>Inventory</h3>
+              <div class="inline-controls">
+                <input id="inventorySearch" type="search" placeholder="Search item, code, size" />
+                <select id="statusFilter">
+                  <option value="all">All</option>
+                  <option value="ok">In stock</option>
+                  <option value="reorder">To reorder</option>
+                  <option value="negative">Negative stock</option>
+                </select>
+                <button id="exportBtn" class="secondary-btn" type="button">Export CSV</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Size</th>
+                    <th>Category</th>
+                    <th>Received</th>
+                    <th>Issued</th>
+                    <th>Returned to stock</th>
+                    <th>Discarded</th>
+                    <th>Adjustments</th>
+                    <th>On hand</th>
+                    <th>Reorder level</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="cadetPanel" class="panel hidden">
+            <div class="panel-header">
+              <h3>My issued kit</h3>
+            </div>
+            <div class="card">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cadet</th>
+                    <th>Item</th>
+                    <th>Size</th>
+                    <th>Quantity</th>
+                    <th>Issued</th>
+                  </tr>
+                </thead>
+                <tbody id="cadetKitTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
